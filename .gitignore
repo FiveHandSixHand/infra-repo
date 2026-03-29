@@ -1,0 +1,10 @@
+.env
+
+# 도커 데이터 볼륨 (DB 데이터가 로컬에 저장되는 경우)
+postgres_data/
+redis_data/
+
+# === IDE 및 OS 설정 파일 ===
+.idea/
+.vscode/
+.DS_Store
