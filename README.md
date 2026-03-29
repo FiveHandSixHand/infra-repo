@@ -4,12 +4,12 @@
 
 ## 🏗️ 포함된 서비스 (Infrastructure Stack)
 
-| 서비스     | 이미지 (Version)   | 외부 포트 | 설명                                     |
-| ---------- | ------------------ | --------- | ---------------------------------------- |
-| PostgreSQL | postgres:17-alpine | 5432      | 메인 데이터베이스 (Keycloak 데이터 포함) |
-| Redis      | redis:7-alpine     | 6379      | 분산 캐시 및 메시지 브로커               |
-| Keycloak   | keycloak:26.5.6    | 9090      | IAM (인증 및 인가 서버)                  |
-| Zipkin     | zipkin:latest      | 9411      | 분산 트레이싱 (로그 추적)                |
+| 서비스     | 이미지 (Version) | 외부 포트 | 설명                                     |
+| ---------- | ---------------- | --------- | ---------------------------------------- |
+| PostgreSQL | postgres:17      | 5432      | 메인 데이터베이스 (Keycloak 데이터 포함) |
+| Redis      | redis:7-alpine   | 6379      | 분산 캐시 및 메시지 브로커               |
+| Keycloak   | keycloak:26.5.6  | 9090      | IAM (인증 및 인가 서버)                  |
+| Zipkin     | zipkin:latest    | 9411      | 분산 트레이싱 (로그 추적)                |
 
 ## 🚀 시작하기 (Quick Start)
 
