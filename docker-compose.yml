@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # 데이터베이스
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    container_name: postgres
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - msa-net
+
+  # 캐시
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    restart: unless-stopped
+    networks:
+      - msa-net
+
+  # 인증 서버
+  keycloak:
+    image: ${KEYCLOAK_IMAGE}
+    container_name: keycloak
+    command: start-dev
+    ports:
+      - "${KEYCLOAK_PORT}:8080"
+    environment:
+      KEYCLOAK_ADMIN: ${KC_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      KC_DB_USERNAME: ${DB_USERNAME}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - msa-net
+
+  # 트레이싱
+  zipkin:
+    image: ${ZIPKIN_IMAGE}
+    container_name: zipkin
+    ports:
+      - "${ZIPKIN_PORT}:9411"
+    restart: unless-stopped
+    networks:
+      - msa-net
+
+volumes:
+  postgres_data:
+
+networks:
+  msa-net:
+    driver: bridge
