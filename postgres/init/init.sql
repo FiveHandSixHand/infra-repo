@@ -5,3 +5,4 @@ CREATE SCHEMA IF NOT EXISTS delivery_manager_service;
 CREATE SCHEMA IF NOT EXISTS company_service;
 CREATE SCHEMA IF NOT EXISTS order_service;
 CREATE SCHEMA IF NOT EXISTS notification_service;
+CREATE SCHEMA IF NOT EXISTS product_service;
