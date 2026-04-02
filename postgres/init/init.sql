@@ -1,3 +1,6 @@
+CREATE DATABASE keycloak_db;
+
+\c da_it_da_db;
 CREATE SCHEMA IF NOT EXISTS user_service;
 CREATE SCHEMA IF NOT EXISTS hub_service;
 CREATE SCHEMA IF NOT EXISTS delivery_service;
