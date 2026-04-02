@@ -62,6 +62,7 @@ services:
 
 volumes:
   postgres_data:
+  keycloak_data:
 
 networks:
   msa-net:
