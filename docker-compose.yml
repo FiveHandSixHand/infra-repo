@@ -45,6 +45,8 @@ services:
     depends_on:
       - postgres
     restart: unless-stopped
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     networks:
       - msa-net
 
