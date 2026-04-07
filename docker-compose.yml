@@ -71,6 +71,34 @@ services:
     networks:
       - msa-net
 
+  # kafka 관리자
+  zookeeper:
+    image: ${ZOOKEEPER_IMAGE}
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - msa-net
+
+  # kafka 브로커
+  kafka:
+    image: ${KAFKA_IMAGE}
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA_PORT}:9092"
+    environment:
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_HOST}:29092,PLAINTEXT_HOST://localhost:${KAFKA_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    networks:
+      - msa-net
+
 volumes:
   postgres_data:
   keycloak_data:
