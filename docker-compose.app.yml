@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    build:
+      context: ../eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - msa-net
+
+  config-server:
+    build:
+      context: ../config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=git
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - CONFIG_SERVER_URL=http://config-server:8888
+      
+      # Git 저장소 정보
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/FiveHandSixHand/project-configs.git
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=dev
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${GITHUB_USERNAME}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${GITHUB_TOKEN}
+      
+      # 깃허브 연결 지연 대비 타임아웃 연장
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT=10
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - msa-net
+
+  user-service:
+    build:
+      context: ../user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+
+      # keycloak 관련
+      - KEYCLOAK_SERVER_URL=http://${KEYCLOAK_HOST}:${KEYCLOAK_PORT}
+      - KEYCLOAK_ADMIN_USERNAME=${KEYCLOAK_ADMIN_USERNAME}
+      - KEYCLOAK_ADMIN_PASSWORD=${KC_ADMIN_PASSWORD}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_ADMIN_CLIENT_ID=${KEYCLOAK_ADMIN_CLIENT_ID}
+      - KEYCLOAK_USER_CLIENT_ID=${KEYCLOAK_USER_CLIENT_ID}
+
+      # DB 관련 (common/application.yml에서 사용할 변수들)
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - POSTGRES_HOST=postgres
+
+      # Redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_HOST=redis
+
+      - ZIPKIN_HOST=zipkin
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      zipkin:
+        condition: service_started
+    networks:
+      - msa-net
+
+  gateway-server:
+    build:
+      context: ../gateway-server
+    container_name: gateway-server
+    ports:
+      - "8080:8080"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - ZIPKIN_HOST=zipkin
+      - KEYCLOAK_HOST=${KEYCLOAK_HOST}
+      - KEYCLOAK_PORT=${KEYCLOAK_PORT}
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - msa-net
+
+networks:
+  msa-net:
+    name: msa-net
+    driver: bridge
